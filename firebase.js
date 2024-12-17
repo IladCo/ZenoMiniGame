@@ -1,23 +1,17 @@
-const { Telegraf } = require('telegraf');
-const db = require('./firebase'); // Import the Firebase module
+const admin = require('firebase-admin');
+const path = require('path');
 
-// Replace with your actual bot token from BotFather
-const bot = new Telegraf('7769323799:AAFIrQgxFiDOZoF8FMe_ijMA9kcwM63LM58');
+// Path to your Firebase service account key JSON
+const serviceAccount = path.join(__dirname, 'firebase.json');
 
-// Command to test Firebase
-bot.command('testfirebase', async (ctx) => {
-  try {
-    // Write a test message to Firebase
-    await db.ref('test').set({ message: 'Firebase is working via Telegram bot!' });
-
-    // Send a confirmation to the user
-    ctx.reply('Firebase initialized and test data written successfully!');
-  } catch (error) {
-    console.error('Error writing to Firebase:', error);
-    ctx.reply('There was an error initializing Firebase.');
-  }
+// Initialize Firebase Admin SDK with your service account credentials
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://zeno-lend-game-default-rtdb.firebaseio.com/' 
 });
 
-// Start the bot
-bot.launch();
-console.log('Bot is running. Send /testfirebase to test Firebase.');
+// Get a reference to the Firebase Realtime Database
+const db = admin.database();
+
+// Export the Firebase database reference so you can use it in other files
+module.exports = db;
