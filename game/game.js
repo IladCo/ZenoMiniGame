@@ -41,6 +41,12 @@ function create() {
   });
 
   startTapSession();
+  
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+
+  userId = tg.initDataUnsafe?.user?.id;
+  console.log("User ID: ", userId);
 }
 
 function startTapSession() {
@@ -90,7 +96,7 @@ function showEndSessionUI() {
   supplyButton.onclick = () => {
     debugger
     updateBackendWithScore(score);
-    window.open('/supply', '_self');
+    window.open('/supply.html', '_self');
     container.remove();
   };
 
@@ -101,7 +107,13 @@ function showEndSessionUI() {
 }
 
 function updateBackendWithScore(finalScore) {
-  const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
+  const userId = window.userId;  // Access the user ID from the HTML
+  
+  if (!userId) {
+    alert("User ID not found. Make sure you're running this in Telegram.");
+    return;
+  }
+  
   fetch('/update-score', {
     method: 'POST',
     headers: {
@@ -117,6 +129,7 @@ function updateBackendWithScore(finalScore) {
     console.error('Error updating score:', error);
   });
 }
+
 
 function update() {
   // Game loop logic (if needed)

@@ -7,6 +7,7 @@
   
   <!-- Phaser Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
     body, html {
@@ -24,6 +25,24 @@
 </head>
 <body>
   <div id="game-container"></div>
+
+  <script>
+    // Telegram WebApp Integration
+    const tg = window.Telegram.WebApp;
+    tg.expand();  // Fullscreen the app
+
+    // Get Telegram User ID
+    const userId = tg.initDataUnsafe?.user?.id;
+
+    if (userId) {
+      console.log("User ID:", userId);
+    } else {
+      console.log("User ID not found.");
+    }
+
+    // Pass the user ID to the game logic
+    window.userId = userId;
+  </script>
 
   <!-- Game Logic -->
   <script src="game.js"></script>
