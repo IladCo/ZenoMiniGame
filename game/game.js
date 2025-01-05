@@ -19,20 +19,22 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-let score = 0;
-let scoreText;
+let balance = 0;
+let balanceText;
 let tappingEnabled = true;
 let sessionStartTime;
-const tapDuration = 10 * 1000;  // 1 minute
+const tapDuration = 10 * 1000;  // 10 seconds
 const cooldownTime = 12 * 60 * 60 * 1000;  // 12 hours
 
 function preload() {
-  this.load.image('coin', './coin.png');  // Update path if needed
+  this.load.image('coin', './coin.png');  // Ensure coin image path is correct
 }
 
 function create() {
-  scoreText = this.add.text(16, 16, `Score: ${score}`, { fontSize: '32px', fill: '#fff' });
+  // Display balance inside Phaser game
+  balanceText = this.add.text(16, 16, `Balance: ${balance}`, { fontSize: '32px', fill: '#fff' });
 
+  // Drop coins every 500ms
   this.time.addEvent({
     delay: 500,
     callback: dropCoin,
@@ -40,15 +42,11 @@ function create() {
     loop: true
   });
 
+  // Start tapping session
   startTapSession();
-  
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-
-  userId = tg.initDataUnsafe?.user?.id;
-  console.log("User ID: ", userId);
 }
 
+// Tap session timing
 function startTapSession() {
   tappingEnabled = true;
   sessionStartTime = Date.now();
@@ -60,6 +58,7 @@ function startTapSession() {
   }, tapDuration);
 }
 
+// Drop coin logic
 function dropCoin() {
   const x = Phaser.Math.Between(100, 700);
   const coin = this.physics.add.sprite(x, 0, 'coin');
@@ -67,15 +66,26 @@ function dropCoin() {
   coin.setScale(0.3);
   coin.setInteractive();
 
+  // Tap coin to increase balance
   coin.on('pointerdown', function () {
     if (tappingEnabled) {
-      score += 10;
-      scoreText.setText('Score: ' + score);
+      balance += 1;
+      balanceText.setText('Balance: ' + balance);  // Update Phaser balance
+      updateBalanceDisplay();  // Update HTML display
       coin.destroy();
     }
   });
 }
 
+// Sync HTML display with Phaser balance
+function updateBalanceDisplay() {
+  const balanceDisplay = document.getElementById('balanceDisplay');
+  if (balanceDisplay) {
+    balanceDisplay.innerText = `Balance: ${balance} coins`;
+  }
+}
+
+// Show UI when session ends
 function showEndSessionUI() {
   const container = document.createElement('div');
   container.id = 'end-session';
@@ -94,8 +104,7 @@ function showEndSessionUI() {
   const supplyButton = document.createElement('button');
   supplyButton.textContent = 'Supply';
   supplyButton.onclick = () => {
-    debugger
-    updateBackendWithScore(score);
+    updateBackendWithBalance(balance);  // Update balance when game ends
     window.open('/supply.html', '_self');
     container.remove();
   };
@@ -106,31 +115,32 @@ function showEndSessionUI() {
   document.body.appendChild(container);
 }
 
-function updateBackendWithScore(finalScore) {
-  const userId = window.userId;  // Access the user ID from the HTML
-  
+// Send balance to the backend
+function updateBackendWithBalance(finalBalance) {
+  const userId = window.userId;
+
   if (!userId) {
     alert("User ID not found. Make sure you're running this in Telegram.");
     return;
   }
-  
-  fetch('/update-score', {
+
+  fetch('/update-balance', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ userId, score: finalScore })
+    body: JSON.stringify({ userId, amount: finalBalance })
   })
   .then(response => response.json())
   .then(data => {
-    console.log('Score updated:', data);
+    console.log('Balance updated:', data);
   })
   .catch((error) => {
-    console.error('Error updating score:', error);
+    console.error('Error updating balance:', error);
   });
 }
 
-
+// Update loop (can add more logic here)
 function update() {
   // Game loop logic (if needed)
 }

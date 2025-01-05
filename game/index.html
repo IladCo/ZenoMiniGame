@@ -21,30 +21,35 @@
       align-items: center;
       height: 100vh;
     }
+    #gameContainer {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 20px;
+    }
+    #endSessionBtn {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #ff5722;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #endSessionBtn:hover {
+      background-color: #e64a19;
+    }
   </style>
 </head>
 <body>
-  <div id="game-container"></div>
+  <div id="game-container"></div>  <!-- Game area rendered by Phaser.js -->
 
-  <script>
-    // Telegram WebApp Integration
-    const tg = window.Telegram.WebApp;
-    tg.expand();  // Fullscreen the app
+  <!-- Display Balance and End Session Button -->
+  <div id="gameContainer">
+    <div id="balanceDisplay">Balance: 0 coins</div>
+    <button id="endSessionBtn">End Game</button>
+  </div>
 
-    // Get Telegram User ID
-    const userId = tg.initDataUnsafe?.user?.id;
-
-    if (userId) {
-      console.log("User ID:", userId);
-    } else {
-      console.log("User ID not found.");
-    }
-
-    // Pass the user ID to the game logic
-    window.userId = userId;
-  </script>
-
-  <!-- Game Logic -->
   <script src="game.js"></script>
 </body>
 </html>

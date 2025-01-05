@@ -1,11 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supply</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeno Lend Game</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Supply Page</h1>
+    <div class="container">
+        <h1>Welcome to Zeno Lend Game</h1>
+        <div class="actions">
+            <button onclick="supplyCoins()">Supply Coins</button>
+            <button onclick="borrowCoins()">Borrow Coins</button>
+            <button onclick="repayLoan()">Repay Loan</button>
+            <button onclick="distributePrize()">Distribute Prize</button>
+            <button onclick="viewLeaderboard()">View Leaderboard</button>
+            <button onclick="checkMyRank()">My Rank</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        const userId = tg.initDataUnsafe?.user?.id || 'default';
+
+        async function fetchAndDisplayBalance() {
+            try {
+                const response = await fetch(`http://localhost:8080/api/getBalance?userId=${userId}`);
+                const data = await response.json();
+                if (data && data.balance !== undefined) {
+                    alert(`Updated balance: ${data.balance} coins`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to fetch updated balance.');
+            }
+        }
+
+        async function supplyCoins() {
+            try {
+                const balanceResponse = await fetch(`http://localhost:8080/api/getBalance?userId=${userId}`);
+                const balanceData = await balanceResponse.json();
+
+                if (balanceData && balanceData.balance !== undefined) {
+                    alert(`Your current balance is: ${balanceData.balance} coins`);
+                } else {
+                    alert('Could not fetch balance. Please try again later.');
+                    return;
+                }
+
+                const amount = prompt("Enter the amount to supply:");
+                if (amount && !isNaN(amount) && amount > 0) {
+                    const response = await fetch('http://localhost:8080/api/supply', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId, amount })
+                    });
+
+                    const data = await response.json();
+                    alert(data.message);
+
+                    // Fetch updated balance immediately after supply
+                    fetchAndDisplayBalance();
+                } else {
+                    alert('Please enter a valid amount.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to fetch balance.');
+            }
+        }
+
+        async function borrowCoins() {
+            const amount = prompt("Enter the amount to borrow:");
+            if (amount && !isNaN(amount) && amount > 0) {
+                try {
+                    const response = await fetch('http://localhost:8080/api/borrow', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId, amount })
+                    });
+                    const data = await response.json();
+                    alert(data.message);
+                    fetchAndDisplayBalance();
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to borrow coins.');
+                }
+            } else {
+                alert('Please enter a valid amount.');
+            }
+        }
+
+        async function repayLoan() {
+            try {
+                const response = await fetch('http://localhost:8080/api/repay', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                const data = await response.json();
+                alert(data.message);
+                fetchAndDisplayBalance();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to repay loan.');
+            }
+        }
+
+        async function distributePrize() {
+            try {
+                const response = await fetch('http://localhost:8080/api/distribute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                const data = await response.json();
+                alert(data.message);
+                fetchAndDisplayBalance();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to distribute prize.');
+            }
+        }
+
+        async function viewLeaderboard() {
+            try {
+                const response = await fetch('http://localhost:8080/api/leaderboard');
+                const data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load leaderboard.');
+            }
+        }
+
+        async function checkMyRank() {
+            try {
+                const response = await fetch(`http://localhost:8080/api/myrank?userId=${userId}`);
+                const data = await response.json();
+                alert(`Your rank is: ${data.rank}`);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to check rank.');
+            }
+        }
+    </script>
 </body>
 </html>

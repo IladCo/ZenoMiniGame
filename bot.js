@@ -12,7 +12,27 @@ bot.start((ctx) => {
   ctx.reply(`Welcome, ${userName}! 🤖\n\nI’m Zeno Lend Game bot. Use the front-end buttons to interact.`);
 });
 
-// REST API for Supply
+// Existing POST route to update the user balance when the game ends
+app.post('/update-balance', async (req, res) => {
+  const { userId, amount } = req.body;  // Expect userId and the final amount sent from the game
+  
+  const userRef = db.ref(`users/${userId}`);
+
+  try {
+    const userSnapshot = await userRef.once('value');
+    const userData = userSnapshot.val() || {};  // If no user data found, default to empty object
+
+    // Update balance by adding the amount from the game session
+    const newBalance = (userData.balance || 0) + amount;
+    await userRef.update({ balance: newBalance });
+
+    res.json({ message: `Balance updated by ${amount}. New balance: ${newBalance}` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating balance.' });
+  }
+});
+
+// Supply API to lend coins to the bank
 app.post('/api/supply', async (req, res) => {
   const { userId, amount } = req.body;
   const userRef = db.ref(`users/${userId}`);
@@ -30,8 +50,8 @@ app.post('/api/supply', async (req, res) => {
     }
 
     const newBalance = userData.balance - amount;
-    const newSupply = userData.supply + amount;
-    const newTotalSupply = bankData.totalSupply + amount;
+    const newSupply = (userData.supply || 0) + amount;
+    const newTotalSupply = (bankData.totalSupply || 0) + amount;
 
     await userRef.update({ balance: newBalance, supply: newSupply });
     await bankRef.update({ totalSupply: newTotalSupply });
@@ -42,7 +62,7 @@ app.post('/api/supply', async (req, res) => {
   }
 });
 
-// REST API for Borrow
+// Borrow API
 app.post('/api/borrow', async (req, res) => {
   const { userId, amount } = req.body;
   const userRef = db.ref(`users/${userId}`);
@@ -54,15 +74,15 @@ app.post('/api/borrow', async (req, res) => {
     const userData = userSnapshot.val() || {};
     const bankData = bankSnapshot.val() || {};
 
-    const maxBorrow = Math.floor(userData.supply * 0.8);
-    if (userData.loan + amount > maxBorrow || bankData.totalSupply < amount) {
+    const maxBorrow = Math.floor((userData.supply || 0) * 0.8);
+    if ((userData.loan || 0) + amount > maxBorrow || (bankData.totalSupply || 0) < amount) {
       return res.json({ message: 'Borrow limit exceeded or bank lacks supply.' });
     }
 
-    const newLoan = userData.loan + amount;
-    const newBalance = userData.balance + amount;
-    const newTotalLoan = bankData.totalLoan + amount;
-    const newTotalSupply = bankData.totalSupply - amount;
+    const newLoan = (userData.loan || 0) + amount;
+    const newBalance = (userData.balance || 0) + amount;
+    const newTotalLoan = (bankData.totalLoan || 0) + amount;
+    const newTotalSupply = (bankData.totalSupply || 0) - amount;
 
     await userRef.update({ balance: newBalance, loan: newLoan });
     await bankRef.update({ totalLoan: newTotalLoan, totalSupply: newTotalSupply });
@@ -73,7 +93,7 @@ app.post('/api/borrow', async (req, res) => {
   }
 });
 
-// REST API for Repay
+// Repay API
 app.post('/api/repay', async (req, res) => {
   const { userId } = req.body;
   const usersRef = db.ref('users');
@@ -97,7 +117,7 @@ app.post('/api/repay', async (req, res) => {
 
     const newBalance = user.balance - totalRepayment;
     const newPrizeTotal = (prizeSnapshot.val().total || 0) + interest;
-    const newBankTotalSupply = bankSnapshot.val().totalSupply + user.loan;
+    const newBankTotalSupply = (bankSnapshot.val().totalSupply || 0) + user.loan;
 
     const updates = {};
     updates[`users/${userId}/balance`] = newBalance;
@@ -112,8 +132,27 @@ app.post('/api/repay', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('REST API running on port 3000');
+// Get user balance API
+app.get('/api/getBalance', async (req, res) => {
+  const { userId } = req.query;
+  const userRef = db.ref(`users/${userId}`);
+
+  try {
+    const userSnapshot = await userRef.once('value');
+    const userData = userSnapshot.val() || {};
+
+    if (userData.balance !== undefined) {
+      res.json({ balance: userData.balance });
+    } else {
+      res.status(404).json({ message: 'User not found.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching balance.' });
+  }
+});
+
+app.listen(8080, () => {
+  console.log('REST API running on port 8080');
 });
 
 bot.launch();
