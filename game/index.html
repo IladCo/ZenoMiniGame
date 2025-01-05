@@ -28,26 +28,54 @@
       color: white;
       font-size: 20px;
     }
-    #endSessionBtn {
-      margin-top: 10px;
-      padding: 10px;
-      background-color: #ff5722;
-      color: white;
-      border: none;
-      cursor: pointer;
+    #startPanel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
     }
-    #endSessionBtn:hover {
-      background-color: #e64a19;
+    .start-btn {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+    .play-btn {
+      background-color: #4caf50;
+      color: white;
+    }
+    .supply-btn {
+      background-color: #2196f3;
+      color: white;
+    }
+    .exit-btn {
+      background-color: #f44336;
+      color: white;
     }
   </style>
 </head>
 <body>
   <div id="game-container"></div>  <!-- Game area rendered by Phaser.js -->
 
-  <!-- Display Balance and End Session Button -->
+  <!-- Display Balance -->
   <div id="gameContainer">
     <div id="balanceDisplay">Balance: 0 coins</div>
-    <button id="endSessionBtn">End Game</button>
+  </div>
+
+  <!-- Start Panel -->
+  <div id="startPanel">
+    <h2>Welcome to Tap Game</h2>
+    <button class="start-btn play-btn" onclick="startGame()">Play</button>
+    <button class="start-btn supply-btn" onclick="window.open('/supply.html', '_self')">Supply</button>
+    <button class="start-btn exit-btn" onclick="exitGame()">Exit</button>
   </div>
 
   <script src="game.js"></script>

@@ -17,20 +17,22 @@ const config = {
   }
 };
 
-const game = new Phaser.Game(config);
-
+let game;
 let balance = 0;
-let balanceText;
 let tappingEnabled = true;
 let sessionStartTime;
 const tapDuration = 10 * 1000;  // 10 seconds
 const cooldownTime = 12 * 60 * 60 * 1000;  // 12 hours
+let gameStarted = false;
 
+// Preload assets
 function preload() {
   this.load.image('coin', './coin.png');  // Ensure coin image path is correct
 }
 
+// Create game scene (starts only if gameStarted is true)
 function create() {
+  if (!gameStarted) return;  // Prevent Phaser scene from running if game hasn’t started
 
   // Drop coins every 500ms
   this.time.addEvent({
@@ -64,11 +66,10 @@ function dropCoin() {
   coin.setScale(0.3);
   coin.setInteractive();
 
-  // Tap coin to increase balance
   coin.on('pointerdown', function () {
     if (tappingEnabled) {
       balance += 1;
-      updateBalanceDisplay();  // Update HTML display
+      updateBalanceDisplay();  
       coin.destroy();
     }
   });
@@ -101,7 +102,7 @@ function showEndSessionUI() {
   const supplyButton = document.createElement('button');
   supplyButton.textContent = 'Supply';
   supplyButton.onclick = () => {
-    updateBackendWithBalance(balance);  // Update balance when game ends
+    updateBackendWithBalance(balance);
     window.open('/supply.html', '_self');
     container.remove();
   };
@@ -127,14 +128,20 @@ function updateBackendWithBalance(finalBalance) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ userId, amount: finalBalance })
-  })
-  .then(response => response.json())
-  .then(data => {
-    console.log('Balance updated:', data);
-  })
-  .catch((error) => {
-    console.error('Error updating balance:', error);
   });
+}
+
+// Start Game on Button Click
+function startGame() {
+  document.getElementById('startPanel').style.display = 'none';
+  gameStarted = true;
+  game = new Phaser.Game(config);
+}
+
+// Exit Game
+function exitGame() {
+  const panel = document.getElementById('startPanel');
+  if (panel) panel.remove();
 }
 
 // Update loop (can add more logic here)
