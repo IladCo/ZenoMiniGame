@@ -31,8 +31,6 @@ function preload() {
 }
 
 function create() {
-  // Display balance inside Phaser game
-  balanceText = this.add.text(16, 16, `Balance: ${balance}`, { fontSize: '32px', fill: '#fff' });
 
   // Drop coins every 500ms
   this.time.addEvent({
@@ -70,7 +68,6 @@ function dropCoin() {
   coin.on('pointerdown', function () {
     if (tappingEnabled) {
       balance += 1;
-      balanceText.setText('Balance: ' + balance);  // Update Phaser balance
       updateBalanceDisplay();  // Update HTML display
       coin.destroy();
     }
