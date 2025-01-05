@@ -8,9 +8,11 @@ const app = express();
 app.use(bodyParser.json());
 
 bot.start((ctx) => {
+  const userId = ctx.from.id;
   const userName = ctx.from.first_name || "there";
-  ctx.reply(`Welcome, ${userName}! 🤖\n\nI’m Zeno Lend Game bot. Use the front-end buttons to interact.`);
+  ctx.reply(`Welcome, ${userName}! Your user ID is ${userId}. 🤖\n\nI’m Zeno Lend Game bot. Use the front-end buttons to interact.`);
 });
+
 
 // Existing POST route to update the user balance when the game ends
 app.post('/update-balance', async (req, res) => {
